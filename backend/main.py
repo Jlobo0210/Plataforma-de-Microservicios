@@ -1,0 +1,73 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from contextlib import asynccontextmanager
+from docker_manager import DockerManager
+from nginx_manager import NginxManager
+
+docker_mgr = DockerManager()
+nginx_mgr = NginxManager()
+
+# Limpieza al iniciar y apagar
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Al iniciar: limpiar microservicios huérfanos
+    nginx_mgr.cleanup_all()
+    docker_mgr.cleanup_all()
+    yield
+    # Al apagar: limpiar todo
+    nginx_mgr.cleanup_all()
+    docker_mgr.cleanup_all()
+
+app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class CreateServiceRequest(BaseModel):
+    name: str
+    code: str
+    language: str  # "python" | "javascript"
+
+@app.post("/api/services")
+async def create_service(request: CreateServiceRequest):
+    """Crea un nuevo microservicio."""
+    try:
+        # 1. Crear el contenedor
+        service_info = docker_mgr.create_microservice(
+            name=request.name,
+            code=request.code,
+            language=request.language
+        )
+        
+        # 2. Agregar ruta en NGINX
+        nginx_mgr.add_route(
+            service_id=service_info["service_id"],
+            container_name=service_info["container_name"],
+            endpoint=f"{request.name}-{service_info['service_id']}"
+        )
+        
+        return {
+            "success": True,
+            "service_id": service_info["service_id"],
+            "endpoint": service_info["endpoint"],
+            "message": f"Microservicio disponible en {service_info['endpoint']}"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/services/{service_id}")
+async def delete_service(service_id: str):
+    """Elimina un microservicio."""
+    docker_mgr.stop_microservice(service_id)
+    nginx_mgr.remove_route(service_id)
+    return {"success": True}
+
+@app.get("/api/services")
+async def list_services():
+    """Lista los microservicios activos."""
+    return {"services": docker_mgr.active_services}
