@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
-import CreateServiceModal from './components/CreateServiceModal';
-import api from './services/api';
+import Sidebar from '../components/Sidebar';
+import Dashboard from './Dashboard';
+import CreateServiceModal from '../components/CreateServiceModal';
+import api from '../services/api';
 
 export default function App() {
   const [services, setServices]   = useState([]);
