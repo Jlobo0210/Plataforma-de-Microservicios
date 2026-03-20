@@ -1,6 +1,10 @@
 #!/bin/sh
-# Vigilar cambios en configs y recargar NGINX
+
+echo "👀 Watching for changes..."
+
 while true; do
-    inotifywait -e modify,create,delete /etc/nginx/conf.d/
+    # ⭐ Vigila la nueva carpeta
+    inotifywait -e modify,create,delete /etc/nginx/locations/ 2>/dev/null
+    echo "🔄 Change detected, reloading NGINX..."
     nginx -s reload
 done

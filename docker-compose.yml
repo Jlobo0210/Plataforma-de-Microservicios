@@ -6,7 +6,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - nginx_config:/etc/nginx/conf.d   # Volumen compartido para configs
+      - nginx_locations:/etc/nginx/locations
     networks:
       - platform_network
     depends_on:
@@ -19,10 +19,10 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       - DOCKER_NETWORK=platform_network
-      - NGINX_CONFIG_PATH=/nginx_config
+      - NGINX_CONFIG_PATH=/nginx_locations
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # ⭐ La magia
-      - nginx_config:/nginx_config                  # Mismo volumen que NGINX
+      - nginx_locations:/nginx_locations  # Mismo volumen que NGINX
     ports:
       - "8000:8000"
     networks:
@@ -42,7 +42,7 @@ services:
       - platform_network
 
 volumes:
-  nginx_config:
+  nginx_locations:
 
 networks:
   platform_network:
