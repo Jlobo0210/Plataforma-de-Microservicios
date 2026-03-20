@@ -88,13 +88,13 @@ class DockerManager:
                 "container_name": container_name,
                 "name": name,
                 "language": language,
-                "endpoint": f"/services/{name}-{service_id}"
+                "endpoint": f"/api/services/{name}-{service_id}"
             }
 
             return {
                 "service_id": service_id,
                 "container_name": container_name,
-                "endpoint": f"/services/{name}-{service_id}"
+                "endpoint": f"/api/services/{name}-{service_id}"
             }
 
         except Exception as e:
