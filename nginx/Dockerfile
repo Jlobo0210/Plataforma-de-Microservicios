@@ -1,7 +1,9 @@
 FROM nginx:alpine
 
-# Script para recargar NGINX cuando cambien las configs
-COPY reload_watch.sh /reload_watch.sh
-RUN chmod +x /reload_watch.sh
+# ⭐ Instalar inotify-tools
+RUN apk add --no-cache inotify-tools
 
-CMD ["/bin/sh", "-c", "nginx & /reload_watch.sh"]
+COPY reload_watch.sh /reload_watch.sh
+RUN sed -i 's/\r//' /reload_watch.sh && chmod +x /reload_watch.sh
+
+CMD ["/bin/sh", "-c", "nginx && /reload_watch.sh"]

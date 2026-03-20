@@ -11,7 +11,7 @@ services:
       - platform_network
     depends_on:
       - backend
-      - frontend
+      #- frontend
 
   backend:
     build:
