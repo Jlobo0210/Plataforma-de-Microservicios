@@ -10,9 +10,9 @@ export const MOCK_SERVICES = [
   },
   {
     id: '2',
-    name: 'static-landing',
-    description: 'Página estática en HTML con Nginx',
-    language: 'HTML',
+    name: 'api-gateway',
+    description: 'Gateway principal en Express.js',
+    language: 'JAVASCRIPT',
     status: 'building',
     enabled: true,
     endpoint: 'http://localhost:3002',

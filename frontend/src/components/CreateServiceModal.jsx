@@ -66,16 +66,18 @@ export default function CreateServiceModal({ isOpen, onClose, onSubmit }) {
           <div>
             <label className="text-sm text-slate-300 font-medium">Lenguaje</label>
             <div className="mt-1 flex gap-3">
-              {['PYTHON', 'HTML'].map(lang => (
+              {['PYTHON', 'JAVASCRIPT'].map(lang => (
                 <button key={lang} type="button" onClick={() => set('language', lang)}
                   className={`flex-1 py-2 rounded-lg border text-sm font-semibold transition-all
                     ${form.language === lang
-                      ? lang === 'PYTHON' ? 'bg-blue-900/40 border-blue-600/50 text-blue-300' : 'bg-orange-900/40 border-orange-600/50 text-orange-300'
+                      ? lang === 'PYTHON'
+                        ? 'bg-blue-900/40 border-blue-600/50 text-blue-300'
+                        : 'bg-yellow-900/40 border-yellow-600/50 text-yellow-300'
                       : 'bg-slate-800 border-slate-700 text-slate-500'}`}
                 >
-                  {lang === 'PYTHON' ? '🐍 Python' : '🌐 HTML'}
-                </button>
-              ))}
+                  {lang === 'PYTHON' ? '🐍 Python' : '🟨 JavaScript'}
+            </button>
+          ))}
             </div>
           </div>
 

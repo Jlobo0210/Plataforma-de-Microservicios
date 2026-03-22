@@ -12,25 +12,31 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
   const isBuilding = service.status === 'building';
   const langColor = service.language === 'PYTHON'
     ? 'bg-blue-900/30 text-blue-300 border-blue-700/40'
-    : 'bg-orange-900/30 text-orange-300 border-orange-700/40';
+    : 'bg-yellow-900/30 text-yellow-300 border-yellow-700/40';
 
   return (
     <div className={`relative flex flex-col gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 transition-opacity ${!service.enabled ? 'opacity-50' : ''}`}>
+
       {/* Top: badges + switch */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-2 flex-wrap">
           <span className={`text-xs font-bold px-2 py-0.5 rounded border ${langColor}`}>
-            {service.language === 'PYTHON' ? '🐍' : '🌐'} {service.language}
+            {service.language === 'PYTHON' ? '🐍' : '🟨'} {service.language}
           </span>
           <StatusBadge status={service.status} />
         </div>
-        {/* Switch */}
+
+        {/* Switch arreglado */}
         <button
           onClick={() => !isBuilding && onToggle(service.id, !service.enabled)}
           disabled={isBuilding}
-          className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 ${service.enabled ? 'bg-emerald-500' : 'bg-slate-600'}`}
+          className="relative inline-flex items-center w-11 h-6 rounded-full transition-colors duration-300 disabled:opacity-40 focus:outline-none"
+          style={{ backgroundColor: service.enabled ? '#10b981' : '#475569' }}
         >
-          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${service.enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+          <span
+            className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
+            style={{ transform: service.enabled ? 'translateX(22px)' : 'translateX(4px)' }}
+          />
         </button>
       </div>
 
@@ -40,11 +46,16 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
         <p className="text-xs text-slate-400 mt-0.5">{service.description}</p>
       </div>
 
-      {/* Endpoint */}
-      <div className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40">
-        <span className="text-xs text-slate-500 shrink-0">Endpoint:</span>
-        <span className="text-xs font-mono text-cyan-400 truncate">{service.endpoint}</span>
-      </div>
+      {/* Endpoint clickeable */}
+<div
+  onClick={() => window.open(service.endpoint, '_blank')}
+  className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40 hover:border-cyan-700/50 cursor-pointer group"
+>
+  <span className="text-xs text-slate-500 shrink-0">Endpoint:</span>
+  <span className="text-xs font-mono text-cyan-400 truncate group-hover:text-cyan-300">
+    {service.endpoint}
+  </span>
+</div>
 
       {/* Botón eliminar */}
       <div className="flex justify-end">
@@ -68,6 +79,7 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }
