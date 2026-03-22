@@ -71,3 +71,12 @@ async def delete_service(service_id: str):
 async def list_services():
     """Lista los microservicios activos."""
     return {"services": docker_mgr.active_services}
+
+@app.get("/api/services/{service_id}/params")
+async def get_service_params(service_id: str):
+    """Retorna los parámetros que necesita un microservicio."""
+    try:
+        params = docker_mgr.get_service_params(service_id)
+        return params
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))

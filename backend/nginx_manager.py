@@ -42,7 +42,6 @@ class NginxManager:
         
         # Verificar que el archivo se generó bien
         print(f"✅ [NginxManager] Ruta creada: /api/services/{endpoint}")
-        print(f"📄 Contenido del .conf:\n{config_content}")
 
     def remove_route(self, service_id: str):
         if not self.enabled:
