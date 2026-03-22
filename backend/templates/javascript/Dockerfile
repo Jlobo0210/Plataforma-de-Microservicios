@@ -2,8 +2,8 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Express es el framework HTTP de Node, lo instalamos una sola vez
-RUN npm install express
+# Express es el framework HTTP de Node
+RUN npm install express acorn
 
 COPY runner.js .
 

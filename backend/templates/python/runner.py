@@ -5,12 +5,14 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
+
+# Leer el código del usuario
 user_code = os.environ.get("USER_CODE", "")
 
-# Ejecuta el código del usuario en el contexto global
-# Así sus funciones quedan disponibles
+# Ejecuta el código del usuario
 exec(user_code, globals())
 
+# Detectar el nombre de la función
 def detect_entrypoint(code: str) -> str:
     try:
         tree = ast.parse(code)
@@ -25,7 +27,7 @@ def detect_entrypoint(code: str) -> str:
 entrypoint = detect_entrypoint(user_code)
 print(f"✅ Usando función: {entrypoint}")
 
-
+# Función central de ejecución
 async def execute(params: dict):
     try:
         if entrypoint is None or entrypoint not in globals():
@@ -40,12 +42,13 @@ async def execute(params: dict):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+# Endpoint GET (parámetros por URL)
 @app.get("/")
 async def run_get(request: Request):
     params = dict(request.query_params)
     return await execute(params)
 
-
+# Endpoint POST (parámetros por body)
 @app.post("/")
 async def run_post(request: Request):
     try:
@@ -63,5 +66,6 @@ async def run_post(request: Request):
 
     return await execute(params)
 
+# Arrancar el servidor
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
