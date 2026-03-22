@@ -1,27 +1,35 @@
-import { useState } from 'react';
-import StatusBadge from './StatusBadge';
+import { useState } from "react";
+import StatusBadge from "./StatusBadge";
 
 export default function ServiceCard({ service, onDelete, onToggle }) {
   const [confirming, setConfirming] = useState(false);
 
   const handleDelete = () => {
-    if (confirming) { onDelete(service.id); }
-    else { setConfirming(true); setTimeout(() => setConfirming(false), 3000); }
+    if (confirming) {
+      onDelete(service.id);
+    } else {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 3000);
+    }
   };
 
-  const isBuilding = service.status === 'building';
-  const langColor = service.language === 'PYTHON'
-    ? 'bg-blue-900/30 text-blue-300 border-blue-700/40'
-    : 'bg-yellow-900/30 text-yellow-300 border-yellow-700/40';
+  const isBuilding = service.status === "building";
+  const langColor =
+    service.language === "python"
+      ? "bg-blue-900/30 text-blue-300 border-blue-700/40"
+      : "bg-yellow-900/30 text-yellow-300 border-yellow-700/40";
 
   return (
-    <div className={`relative flex flex-col gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 transition-opacity ${!service.enabled ? 'opacity-50' : ''}`}>
-
+    <div
+      className={`relative flex flex-col gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 transition-opacity ${!service.enabled ? "opacity-50" : ""}`}
+    >
       {/* Top: badges + switch */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex gap-2 flex-wrap">
-          <span className={`text-xs font-bold px-2 py-0.5 rounded border ${langColor}`}>
-            {service.language === 'PYTHON' ? '🐍' : '🟨'} {service.language}
+          <span
+            className={`text-xs font-bold px-2 py-0.5 rounded border ${langColor}`}
+          >
+            {service.language === "python" ? "🐍" : "🟨"} {service.language}
           </span>
           <StatusBadge status={service.status} />
         </div>
@@ -31,11 +39,15 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
           onClick={() => !isBuilding && onToggle(service.id, !service.enabled)}
           disabled={isBuilding}
           className="relative inline-flex items-center w-11 h-6 rounded-full transition-colors duration-300 disabled:opacity-40 focus:outline-none"
-          style={{ backgroundColor: service.enabled ? '#10b981' : '#475569' }}
+          style={{ backgroundColor: service.enabled ? "#10b981" : "#475569" }}
         >
           <span
             className="inline-block w-4 h-4 bg-white rounded-full shadow transition-transform duration-300"
-            style={{ transform: service.enabled ? 'translateX(22px)' : 'translateX(4px)' }}
+            style={{
+              transform: service.enabled
+                ? "translateX(22px)"
+                : "translateX(4px)",
+            }}
           />
         </button>
       </div>
@@ -47,23 +59,23 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
       </div>
 
       {/* Endpoint clickeable */}
-<div
-  onClick={() => window.open(service.endpoint, '_blank')}
-  className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40 hover:border-cyan-700/50 cursor-pointer group"
->
-  <span className="text-xs text-slate-500 shrink-0">Endpoint:</span>
-  <span className="text-xs font-mono text-cyan-400 truncate group-hover:text-cyan-300">
-    {service.endpoint}
-  </span>
-</div>
+      <div
+        onClick={() => window.open(service.endpoint, "_blank")}
+        className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40 hover:border-cyan-700/50 cursor-pointer group"
+      >
+        <span className="text-xs text-slate-500 shrink-0">Endpoint:</span>
+        <span className="text-xs font-mono text-cyan-400 truncate group-hover:text-cyan-300">
+          {service.endpoint}
+        </span>
+      </div>
 
       {/* Botón eliminar */}
       <div className="flex justify-end">
         <button
           onClick={handleDelete}
-          className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${confirming ? 'bg-red-600 text-white border-red-600' : 'text-slate-500 border-slate-700 hover:text-red-400 hover:border-red-800'}`}
+          className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${confirming ? "bg-red-600 text-white border-red-600" : "text-slate-500 border-slate-700 hover:text-red-400 hover:border-red-800"}`}
         >
-          {confirming ? '¿Confirmar?' : 'Eliminar'}
+          {confirming ? "¿Confirmar?" : "Eliminar"}
         </button>
       </div>
 
@@ -71,15 +83,29 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
       {isBuilding && (
         <div className="absolute inset-0 rounded-xl bg-slate-900/40 flex items-center justify-center">
           <div className="flex items-center gap-2 bg-slate-900/90 px-4 py-2 rounded-full border border-amber-700/50 text-xs text-amber-300">
-            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/>
-              <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+            <svg
+              className="w-4 h-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                className="opacity-25"
+              />
+              <path
+                fill="currentColor"
+                className="opacity-75"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
             </svg>
             Construyendo imagen…
           </div>
         </div>
       )}
-
     </div>
   );
 }

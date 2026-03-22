@@ -11,7 +11,7 @@ services:
       - platform_network
     depends_on:
       - backend
-      #- frontend
+      - frontend
 
   backend:
     build:
@@ -37,9 +37,25 @@ services:
 
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - REACT_APP_API_URL=http://localhost
+    ports:
+      - "3000:3000"              
     networks:
       - platform_network
+    develop:
+      watch:
+        - path: ./frontend/package.json
+          action: rebuild        # Si cambian dependencias → rebuild
+        - path: ./frontend/src
+          target: /app/src
+          action: sync           # Si cambia el código → sync
+        - path: ./frontend/public
+          target: /app/public
+          action: sync
 
 volumes:
   nginx_locations:
