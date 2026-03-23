@@ -11,17 +11,22 @@ export default function App() {
   // Carga inicial + polling cada 5s para detectar cambios de estado
  useEffect(() => {
   const load = () => api.getAll().then(data => {
-    console.log('servicios recibidos:', data);
-    setServices(data);
-  });
+  console.log('servicios recibidos:', data);
+  if (Array.isArray(data)) setServices(data);  // ← solo actualiza si es array
+});
   load();
   const interval = setInterval(load, 5000);
   return () => clearInterval(interval);
 }, []);
   const handleCreate = async (data) => {
+  try {
     const nuevo = await api.create(data);
-    setServices(data.filter(s => s !== undefined && s !== null));
-  };
+    console.log('nuevo servicio creado:', nuevo);
+    setServices(prev => [nuevo, ...prev]);
+  } catch (err) {
+    console.error('error en handleCreate:', err);
+  }
+};
 
   const handleDelete = async (id) => {
     await api.remove(id);

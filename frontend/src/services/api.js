@@ -32,32 +32,35 @@ const api = {
   fetch(BASE_URL)
     .then(r => r.json())
     .then(data => {
-      console.log('data cruda del backend:', data);  // ← para ver qué llega
-      if (!data.services) return [];  // ← si no hay services devuelve array vacío
+      console.log('data cruda del backend:', data);
+      if (!data.services) return [];
       return Object.entries(data.services).map(([id, service]) => ({
         id,
         ...service,
         enabled: true,
         status: 'active'
       }));
-    }),
-
-  create: (data) =>
-    fetch(BASE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
     })
-      .then(r => r.json())
-      .then(service => {
-        console.log('respuesta cruda de create:', service);
-        return {
-          id: service.service_id,
-          ...service,
-          enabled: true,
-          status: 'active'
-        };
-      }),
+    .catch(() => []),  // ← agrega esto, si falla devuelve array vacío
+create: (data) =>
+  fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+    .then(r => {
+      console.log('status del POST:', r.status);
+      return r.json();
+    })
+    .then(service => {
+      console.log('respuesta cruda de create:', service);
+      return {
+        id: service.service_id,
+        ...service,
+        enabled: true,
+        status: 'active'
+      };
+    }),
 
   remove: (id) => fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }),
 
