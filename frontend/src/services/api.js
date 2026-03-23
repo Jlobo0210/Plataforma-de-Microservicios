@@ -29,15 +29,18 @@ const mock = {
 // ── API real ────────────────────────────────────────────────
 const api = {
   getAll: () =>
-    fetch(BASE_URL)
-      .then(r => r.json())
-      .then(data =>
-        Object.entries(data.services).map(([id, service]) => ({
-          id,
-          ...service,
-          status: 'active' // Por ahora todos activos, luego se puede agregar al backend
-        }))
-      ),
+  fetch(BASE_URL)
+    .then(r => r.json())
+    .then(data => {
+      console.log('data cruda del backend:', data);  // ← para ver qué llega
+      if (!data.services) return [];  // ← si no hay services devuelve array vacío
+      return Object.entries(data.services).map(([id, service]) => ({
+        id,
+        ...service,
+        enabled: true,
+        status: 'active'
+      }));
+    }),
 
   create: (data) =>
     fetch(BASE_URL, {
@@ -46,11 +49,15 @@ const api = {
       body: JSON.stringify(data),
     })
       .then(r => r.json())
-      .then(service => ({
-        id: service.service_id,
-        ...service,
-        status: 'active'
-      })),
+      .then(service => {
+        console.log('respuesta cruda de create:', service);
+        return {
+          id: service.service_id,
+          ...service,
+          enabled: true,
+          status: 'active'
+        };
+      }),
 
   remove: (id) => fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }),
 
