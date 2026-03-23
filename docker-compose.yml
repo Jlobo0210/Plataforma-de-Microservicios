@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - nginx_locations:/etc/nginx/locations
+    networks:
+      - platform_network
+    depends_on:
+      - backend
+      - frontend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - DOCKER_NETWORK=platform_network
+      - NGINX_CONFIG_PATH=/nginx_locations
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # ⭐ La magia
+      - nginx_locations:/nginx_locations  # Mismo volumen que NGINX
+    ports:
+      - "8000:8000"
+    networks:
+      - platform_network
+    develop:
+      watch:
+        - path: ./backend/requirements.docker.txt
+          action: rebuild
+        - path: ./backend
+          target: /app
+          action: sync
+
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - REACT_APP_API_URL=http://localhost
+    ports:
+      - "3000:3000"              
+    networks:
+      - platform_network
+    develop:
+      watch:
+        - path: ./frontend/package.json
+          action: rebuild        # Si cambian dependencias → rebuild
+        - path: ./frontend/src
+          target: /app/src
+          action: sync           # Si cambia el código → sync
+        - path: ./frontend/public
+          target: /app/public
+          action: sync
+
+volumes:
+  nginx_locations:
+
+networks:
+  platform_network:
+    name: platform_network   # Nombre fijo para que el backend pueda referenciarlo

@@ -9,17 +9,24 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Carga inicial + polling cada 5s para detectar cambios de estado
-  useEffect(() => {
-    const load = () => api.getAll().then(setServices);
-    load();
-    const interval = setInterval(load, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
+ useEffect(() => {
+  const load = () => api.getAll().then(data => {
+  console.log('servicios recibidos:', data);
+  if (Array.isArray(data)) setServices(data);  // ← solo actualiza si es array
+});
+  load();
+  const interval = setInterval(load, 5000);
+  return () => clearInterval(interval);
+}, []);
   const handleCreate = async (data) => {
+  try {
     const nuevo = await api.create(data);
+    console.log('nuevo servicio creado:', nuevo);
     setServices(prev => [nuevo, ...prev]);
-  };
+  } catch (err) {
+    console.error('error en handleCreate:', err);
+  }
+};
 
   const handleDelete = async (id) => {
     await api.remove(id);
@@ -27,10 +34,11 @@ export default function App() {
   };
 
   const handleToggle = async (id, enabled) => {
-    const updated = await api.toggle(id, enabled);
-    setServices(prev => prev.map(s => s.id === id ? updated : s));
-  };
-
+  await api.toggle(id, enabled);
+  setServices(prev => prev.map(s => 
+    s.id === id ? { ...s, enabled, status: enabled ? 'active' : 'disabled' } : s
+  ));
+};
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
       <Sidebar services={services} onNewService={() => setModalOpen(true)} />

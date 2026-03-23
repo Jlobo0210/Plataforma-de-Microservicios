@@ -1,6 +1,6 @@
 // Cambia USE_MOCK a false cuando tengas el backend listo
-const USE_MOCK = true;
-const BASE_URL = '/api/microservices';
+const USE_MOCK = false;
+const BASE_URL = '/api/services';
 
 import { MOCK_SERVICES } from './mockData';
 
@@ -28,21 +28,45 @@ const mock = {
 
 // ── API real ────────────────────────────────────────────────
 const api = {
-  getAll: () => fetch(BASE_URL).then(r => r.json()),
-
-  create: (data) => fetch(BASE_URL, {
+  getAll: () =>
+  fetch(BASE_URL)
+    .then(r => r.json())
+    .then(data => {
+      console.log('data cruda del backend:', data);
+      if (!data.services) return [];
+      return Object.entries(data.services).map(([id, service]) => ({
+        id,
+        ...service,
+        enabled: true,
+        status: 'active'
+      }));
+    })
+    .catch(() => []),  // ← agrega esto, si falla devuelve array vacío
+create: (data) =>
+  fetch(BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  }).then(r => r.json()),
+  })
+    .then(r => {
+      console.log('status del POST:', r.status);
+      return r.json();
+    })
+    .then(service => {
+      console.log('respuesta cruda de create:', service);
+      return {
+        id: service.service_id,
+        ...service,
+        enabled: true,
+        status: 'active'
+      };
+    }),
 
   remove: (id) => fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }),
 
-  toggle: (id, enabled) => fetch(`${BASE_URL}/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ enabled }),
-  }).then(r => r.json()),
+  toggle: (id, enabled) => Promise.resolve(),
+
+  getParams: (id) => fetch(`${BASE_URL}/${id}/params`).then(r => r.json()),
 };
 
 export default USE_MOCK ? mock : api;
