@@ -35,7 +35,8 @@ const api = {
         Object.entries(data.services).map(([id, service]) => ({
           id,
           ...service,
-          status: 'active' // Por ahora todos activos, luego se puede agregar al backend
+          status: service.status || 'active',
+          enabled: service.status !== 'inactive'
         }))
       ),
 
@@ -54,7 +55,10 @@ const api = {
 
   remove: (id) => fetch(`${BASE_URL}/${id}`, { method: 'DELETE' }),
 
-  toggle: (id, enabled) => Promise.resolve(),
+  toggle: (id, enabled) =>
+    fetch(`${BASE_URL}/${id}/${enabled ? 'enable' : 'disable'}`, {
+        method: 'PATCH',
+    }).then(r => r.json()),
 
   getParams: (id) => fetch(`${BASE_URL}/${id}/params`).then(r => r.json()),
 };

@@ -176,7 +176,7 @@ try {
         raise Exception(f"Timeout esperando el contenedor {container.name}")
     
     
-    def create_microservice(self, name: str, code: str, language: str) -> dict:
+    def create_microservice(self, name: str, code: str, language: str, description: str = "") -> dict:
         """
         Crea un contenedor usando la imagen base ya construida.
         El código del usuario se inyecta como variable de entorno.
@@ -219,6 +219,8 @@ try {
                 "name": name,
                 "language": language,
                 "code": code,
+                "description": description,
+                "status": "active",
                 "endpoint": f"/api/services/{name}-{service_id}",
                 "function": None,
                 "params": []    
@@ -267,6 +269,34 @@ try {
                 del self.active_services[service_id]
             except Exception as e:
                 print(f"Error deteniendo contenedor: {e}")
+
+    def enable_microservice(self, service_id: str):
+        # Inicia el contenedor de un microservicio deshabilitado.
+        if service_id not in self.active_services:
+            raise Exception(f"Microservicio '{service_id}' no encontrado")
+        
+        info = self.active_services[service_id]
+        try:
+            container = self.client.containers.get(info["container_id"])
+            container.start()
+            self.active_services[service_id]["status"] = "active"
+            print(f"✅ Microservicio habilitado: {info['container_name']}")
+        except Exception as e:
+            raise Exception(f"Error habilitando microservicio: {str(e)}")
+        
+    def disable_microservice(self, service_id: str):
+        # Detiene el contenedor de un microservicio sin eliminarlo.
+        if service_id not in self.active_services:
+            raise Exception(f"Microservicio '{service_id}' no encontrado")
+        
+        info = self.active_services[service_id]
+        try:
+            container = self.client.containers.get(info["container_id"])
+            container.stop()
+            self.active_services[service_id]["status"] = "inactive"
+            print(f"✅ Microservicio deshabilitado: {info['container_name']}")
+        except Exception as e:
+            raise Exception(f"Error deshabilitando microservicio: {str(e)}")
 
     def cleanup_all(self):
         """Limpia todos los microservicios al apagar la plataforma."""

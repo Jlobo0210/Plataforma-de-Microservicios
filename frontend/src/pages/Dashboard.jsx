@@ -6,9 +6,9 @@ export default function Dashboard({ services, onDelete, onToggle }) {
   const [filter, setFilter] = useState("all");
 
   const filtered = services.filter((s) => {
-    const matchFilter = filter === "all"; //|| s.status === filter; Toca agregar status en en el backend para los microservicios
+    const matchFilter = filter === "all" || (filter === "disabled" ? s.status === "inactive" : s.status === filter);
     const q = search.toLowerCase();
-    const matchSearch = !q || s.name.includes(q); //|| s.description.toLowerCase().includes(q); Toca agregar description en el backend para los microservicios
+    const matchSearch = !q || s.name.toLowerCase().includes(q) || (s.description || "").toLowerCase().includes(q);
     return matchFilter && matchSearch;
   });
 

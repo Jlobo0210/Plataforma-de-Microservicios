@@ -27,8 +27,12 @@ export default function App() {
   };
 
   const handleToggle = async (id, enabled) => {
-    const updated = await api.toggle(id, enabled);
-    setServices(prev => prev.map(s => s.id === id ? updated : s));
+    await api.toggle(id, enabled);
+    setServices(prev => prev.map(s => 
+        s.id === id 
+            ? { ...s, enabled, status: enabled ? "active" : "inactive" } 
+            : s
+    ));
   };
 
   return (

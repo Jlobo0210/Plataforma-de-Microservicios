@@ -32,6 +32,7 @@ class CreateServiceRequest(BaseModel):
     name: str
     code: str
     language: str  # "python" | "javascript"
+    description: str = ""  # Opcional, para futuras mejoras
 
 @app.post("/api/services")
 async def create_service(request: CreateServiceRequest):
@@ -41,7 +42,8 @@ async def create_service(request: CreateServiceRequest):
         service_info = docker_mgr.create_microservice(
             name=request.name,
             code=request.code,
-            language=request.language
+            language=request.language,
+            description=request.description
         )
         
         # 2. Agregar ruta en NGINX
@@ -66,6 +68,24 @@ async def delete_service(service_id: str):
     docker_mgr.stop_microservice(service_id)
     nginx_mgr.remove_route(service_id)
     return {"success": True}
+
+@app.patch("/api/services/{service_id}/enable")
+async def enable_service(service_id: str):
+    # Habilita un microservicio detenido.
+    try:
+        docker_mgr.enable_microservice(service_id)
+        return {"success": True, "status": "active"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.patch("/api/services/{service_id}/disable")
+async def disable_service(service_id: str):
+    # Deshabilita un microservicio sin eliminarlo.
+    try:
+        docker_mgr.disable_microservice(service_id)
+        return {"success": True, "status": "inactive"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/services")
 async def list_services():
