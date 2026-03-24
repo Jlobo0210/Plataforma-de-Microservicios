@@ -60,8 +60,12 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
 
       {/* Endpoint clickeable */}
       <div
-        onClick={() => window.open(service.endpoint, "_blank")}
-        className="flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40 hover:border-cyan-700/50 cursor-pointer group"
+        onClick={() => service.enabled && window.open(service.endpoint, "_blank")}
+        className={`flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40 transition-colors
+          ${service.enabled 
+            ? "hover:border-cyan-700/50 cursor-pointer group" 
+            : "cursor-not-allowed opacity-50"
+          }`}
       >
         <span className="text-xs text-slate-500 shrink-0">Endpoint:</span>
         <span className="text-xs font-mono text-cyan-400 truncate group-hover:text-cyan-300">
