@@ -12,11 +12,12 @@ services:
     depends_on:
       - backend
       - frontend
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     environment:
       - DOCKER_NETWORK=platform_network
       - NGINX_CONFIG_PATH=/nginx_locations
@@ -27,35 +28,17 @@ services:
       - "8000:8000"
     networks:
       - platform_network
-    develop:
-      watch:
-        - path: ./backend/requirements.docker.txt
-          action: rebuild
-        - path: ./backend
-          target: /app
-          action: sync
+    restart: unless-stopped      # ⭐ Reinicia si cae
+    stop_grace_period: 20s       # ⭐ Tiempo para limpiar contenedores
 
 
   frontend:
     build: 
       context: ./frontend
-      dockerfile: Dockerfile.dev
-    environment:
-      - REACT_APP_API_URL=http://localhost
-    ports:
-      - "3000:3000"              
+      dockerfile: Dockerfile
     networks:
       - platform_network
-    develop:
-      watch:
-        - path: ./frontend/package.json
-          action: rebuild        # Si cambian dependencias → rebuild
-        - path: ./frontend/src
-          target: /app/src
-          action: sync           # Si cambia el código → sync
-        - path: ./frontend/public
-          target: /app/public
-          action: sync
+    restart: unless-stopped 
 
 volumes:
   nginx_locations:
