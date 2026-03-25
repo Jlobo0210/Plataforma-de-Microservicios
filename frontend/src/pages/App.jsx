@@ -9,17 +9,27 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Carga inicial + polling cada 5s para detectar cambios de estado
-  useEffect(() => {
+  /*useEffect(() => {
     const load = () => api.getAll().then(setServices);
     load();
     const interval = setInterval(load, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, []); */ 
+
+  useEffect(() => {
+  const load = () => api.getAll().then(data => {
+  console.log('servicios recibidos:', data);
+  if (Array.isArray(data)) setServices(data);  // ← solo actualiza si es array
+});
+  load();
+  const interval = setInterval(load, 5000);
+  return () => clearInterval(interval);
+}, []);
 
   const handleCreate = async (data) => {
     const nuevo = await api.create(data);
     setServices(prev => [nuevo, ...prev]);
-  };
+  }; 
 
   const handleDelete = async (id) => {
     await api.remove(id);

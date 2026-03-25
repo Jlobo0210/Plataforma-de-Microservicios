@@ -61,6 +61,13 @@ const api = {
     }).then(r => r.json()),
 
   getParams: (id) => fetch(`${BASE_URL}/${id}/params`).then(r => r.json()),
+
+  run: (endpoint, params) => fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+    }).then(r => r.json()),
+
 };
 
 export default USE_MOCK ? mock : api;

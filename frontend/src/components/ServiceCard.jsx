@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import StatusBadge from "./StatusBadge";
 
 export default function ServiceCard({ service, onDelete, onToggle }) {
   const [confirming, setConfirming] = useState(false);
-
+  const navigate = useNavigate();
   const handleDelete = () => {
     if (confirming) {
       onDelete(service.id);
@@ -60,7 +61,8 @@ export default function ServiceCard({ service, onDelete, onToggle }) {
 
       {/* Endpoint clickeable */}
       <div
-        onClick={() => service.enabled && window.open(service.endpoint, "_blank")}
+        // onClick={() => service.enabled && window.open(service.endpoint, "_blank")} version anterior Santiago
+        onClick={() => navigate(`/services/${service.id}`)}
         className={`flex items-center gap-2 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700/40 transition-colors
           ${service.enabled 
             ? "hover:border-cyan-700/50 cursor-pointer group" 
