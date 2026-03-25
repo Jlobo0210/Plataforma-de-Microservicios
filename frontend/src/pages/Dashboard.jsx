@@ -22,7 +22,7 @@ export default function Dashboard({ services, onDelete, onToggle }) {
           placeholder="Buscar servicio…"
           className="flex-1 min-w-[200px] bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-600 placeholder:text-slate-600"
         />
-        {["all", "active", "building", "disabled"].map((f) => (
+        {["all", "active",  "disabled"].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -33,7 +33,6 @@ export default function Dashboard({ services, onDelete, onToggle }) {
               {
                 all: "Todos",
                 active: "Activos",
-                building: "Building",
                 disabled: "Off",
               }[f]
             }

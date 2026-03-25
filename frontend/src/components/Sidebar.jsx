@@ -40,11 +40,7 @@ export default function Sidebar({ services, onNewService }) {
               val: active,
               color: "text-emerald-400 bg-emerald-900/30 border-emerald-800/50",
             },
-            {
-              label: "Building",
-              val: building,
-              color: "text-amber-400 bg-amber-900/30 border-amber-800/50",
-            },
+            
             {
               label: "Off",
               val: disabled,
