@@ -4,8 +4,7 @@ import os
 import ast
 import json
 import time
-import shutil
-import tempfile
+import threading
 
 class DockerManager:
     def __init__(self):
@@ -258,14 +257,29 @@ try {
             "params": service.get("params", [])
         }
     
+    def _stop_and_remove_container(self, container):
+        """Detiene y elimina un contenedor individual."""
+        try:
+            container.stop(timeout=3)  # ⭐ Timeout corto: 3s en vez de 10s
+            container.remove(force=True)  # ⭐ Force: elimina aunque no esté detenido
+            print(f"🗑️  Contenedor eliminado: {container.name}")
+        except Exception as e:
+            print(f"⚠️  Error eliminando {container.name}: {e}")
+            try:
+                container.remove(force=True)  # ⭐ Intenta force remove si falla el stop
+            except Exception as e2:
+                print(f"⚠️  Error forzando eliminación {container.name}: {e2}")
+
     def stop_microservice(self, service_id: str):
         """Detiene y elimina un microservicio."""
         if service_id in self.active_services:
             info = self.active_services[service_id]
             try:
                 container = self.client.containers.get(info["container_id"])
-                container.stop()
-                container.remove()
+                self._stop_and_remove_container(container)
+                del self.active_services[service_id]
+            except docker.errors.NotFound:
+                # El contenedor ya no existe, solo limpiar el registro
                 del self.active_services[service_id]
             except Exception as e:
                 print(f"Error deteniendo contenedor: {e}")
@@ -299,17 +313,57 @@ try {
             raise Exception(f"Error deshabilitando microservicio: {str(e)}")
 
     def cleanup_all(self):
-        """Limpia todos los microservicios al apagar la plataforma."""
-        for service_id in list(self.active_services.keys()):
-            self.stop_microservice(service_id)
+        """Limpia todos los microservicios en paralelo al apagar la plataforma."""
         
-        # Limpia también por labels por si quedó algo huérfano
-        containers = self.client.containers.list(
+        # ⭐ Recolectar todos los contenedores a eliminar
+        containers_to_remove = []
+
+        # Los registrados en active_services
+        for service_id, info in list(self.active_services.items()):
+            try:
+                container = self.client.containers.get(info["container_id"])
+                containers_to_remove.append(container)
+            except docker.errors.NotFound:
+                pass
+            except Exception as e:
+                print(f"⚠️  Error obteniendo contenedor {service_id}: {e}")
+
+        # Los huérfanos (por si acaso)
+        try:
+            orphans = self.client.containers.list(
+            all=True,  # ⭐ Incluye exited, stopped, created, etc.
             filters={"label": "platform=microservice-platform"}
-        )
-        for container in containers:
-            container.stop()
-            container.remove()
+            )
+            for c in orphans:
+                if c not in containers_to_remove:
+                    containers_to_remove.append(c)
+        except Exception as e:
+            print(f"⚠️  Error buscando huérfanos: {e}")
+
+        if not containers_to_remove:
+            print("✅ No hay contenedores que limpiar")
+            return
+
+        print(f"🗑️  Eliminando {len(containers_to_remove)} contenedor(es) en paralelo...")
+
+        # ⭐ Eliminar todos en paralelo con threads
+        threads = []
+        for container in containers_to_remove:
+            t = threading.Thread(
+                target=self._stop_and_remove_container,
+                args=(container,),
+                daemon=True
+            )
+            threads.append(t)
+            t.start()
+
+        # ⭐ Esperar a que todos terminen con timeout global
+        for t in threads:
+            t.join(timeout=10)
+
+        # Limpiar el registro
+        self.active_services.clear()
+        print("✅ Limpieza completa")
 
 
 

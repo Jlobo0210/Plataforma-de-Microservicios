@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from docker_manager import DockerManager
 from nginx_manager import NginxManager
+import threading
 
 docker_mgr = DockerManager()
 nginx_mgr = NginxManager()
@@ -16,6 +17,13 @@ async def lifespan(app: FastAPI):
     docker_mgr.cleanup_all()
     yield
     # Al apagar: limpiar todo
+    print("🔄 Apagando plataforma, limpiando microservicios...")
+    cleanup_thread = threading.Thread(target=_cleanup)
+    cleanup_thread.start()
+    cleanup_thread.join(timeout=30)  # ⭐ Espera hasta 30s
+    print("✅ Plataforma apagada")
+
+def _cleanup():
     nginx_mgr.cleanup_all()
     docker_mgr.cleanup_all()
 
