@@ -16,11 +16,12 @@ export default function App() {
     return () => clearInterval(interval);
   }, []); */ 
 
-  useEffect(() => {
+useEffect(() => {
   const load = () => api.getAll().then(data => {
-  console.log('servicios recibidos:', data);
-  if (Array.isArray(data)) setServices(data);  // ← solo actualiza si es array
-});
+    if (Array.isArray(data)) {
+      setServices(data);
+    }
+  });
   load();
   const interval = setInterval(load, 5000);
   return () => clearInterval(interval);
@@ -36,15 +37,14 @@ export default function App() {
     setServices(prev => prev.filter(s => s.id !== id));
   };
 
-  const handleToggle = async (id, enabled) => {
-    await api.toggle(id, enabled);
-    setServices(prev => prev.map(s => 
-        s.id === id 
-            ? { ...s, enabled, status: enabled ? "active" : "inactive" } 
-            : s
-    ));
-  };
-
+const handleToggle = async (id, enabled) => {
+  await api.toggle(id, enabled);
+  setServices(prev => prev.map(s => 
+    s.id === id 
+      ? { ...s, enabled, status: enabled ? 'active' : 'inactive' }
+      : s
+  ));
+};
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100">
       <Sidebar services={services} onNewService={() => setModalOpen(true)} />

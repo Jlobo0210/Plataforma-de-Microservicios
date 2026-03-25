@@ -1,7 +1,7 @@
 export default function Sidebar({ services, onNewService }) {
   const active = services.filter((s) => s.status === "active").length;
   const building = services.filter((s) => s.status === "building").length;
-  const disabled = services.filter((s) => s.status === "disabled").length;
+  const disabled = services.filter((s) => s.status === "inactive").length;
 
   return (
     <aside className="w-56 shrink-0 h-screen sticky top-0 flex flex-col bg-slate-900 border-r border-slate-700/60">

@@ -28,18 +28,17 @@ const mock = {
 
 // ── API real ────────────────────────────────────────────────
 const api = {
-  getAll: () =>
-    fetch(BASE_URL)
-      .then(r => r.json())
-      .then(data =>
-        Object.entries(data.services).map(([id, service]) => ({
-          id,
-          ...service,
-          status: service.status || 'active',
-          enabled: service.status !== 'inactive'
-        }))
-      ),
-
+ getAll: () =>
+  fetch(BASE_URL)
+    .then(r => r.json())
+    .then(data =>
+      Object.entries(data.services).map(([id, service]) => ({
+        id,
+        ...service,
+        status: service.status || 'active',
+        enabled: service.status !== 'inactive' 
+      }))
+    ),
   create: (data) =>
     fetch(BASE_URL, {
       method: 'POST',
@@ -50,6 +49,7 @@ const api = {
       .then(service => ({
         id: service.service_id,
         ...service,
+        enabled: true,  
         status: 'active'
       })),
 
