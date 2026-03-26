@@ -6,9 +6,9 @@ export default function Dashboard({ services, onDelete, onToggle }) {
   const [filter, setFilter] = useState("all");
 
   const filtered = services.filter((s) => {
-    const matchFilter = filter === "all"; //|| s.status === filter; Toca agregar status en en el backend para los microservicios
+    const matchFilter = filter === "all" || (filter === "disabled" ? s.status === "inactive" : s.status === filter);
     const q = search.toLowerCase();
-    const matchSearch = !q || s.name.includes(q); //|| s.description.toLowerCase().includes(q); Toca agregar description en el backend para los microservicios
+    const matchSearch = !q || s.name.toLowerCase().includes(q) || (s.description || "").toLowerCase().includes(q);
     return matchFilter && matchSearch;
   });
 
@@ -22,7 +22,7 @@ export default function Dashboard({ services, onDelete, onToggle }) {
           placeholder="Buscar servicio…"
           className="flex-1 min-w-[200px] bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-600 placeholder:text-slate-600"
         />
-        {["all", "active", "building", "disabled"].map((f) => (
+        {["all", "active",  "disabled"].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -33,7 +33,6 @@ export default function Dashboard({ services, onDelete, onToggle }) {
               {
                 all: "Todos",
                 active: "Activos",
-                building: "Building",
                 disabled: "Off",
               }[f]
             }
