@@ -19,7 +19,6 @@ export default function ServiceDetail() {
         const found = data.services[id];
         if (!found) { setError('Servicio no encontrado'); return; }
         setService(found);
-        // Inicializa los valores con string vacío o default
         const inicial = {};
         found.params.forEach(p => { inicial[p.name] = p.default ?? ''; });
         setValues(inicial);
@@ -29,23 +28,16 @@ export default function ServiceDetail() {
   }, [id]);
 
   const handleExecute = async () => {
-    // Valida requeridos
     const empty = service.params.filter(p => p.required && String(values[p.name]).trim() === '');
-    if (empty.length > 0) {
-      setError(`Completa los campos: ${empty.map(p => p.name).join(', ')}`);
-      return;
-    }
+    if (empty.length > 0) { setError(`Completa: ${empty.map(p => p.name).join(', ')}`); return; }
     setError('');
     setExecuting(true);
     setResult(null);
-
     try {
-      // Convierte a número si aplica
       const converted = {};
       Object.entries(values).forEach(([k, v]) => {
         converted[k] = v !== '' && !isNaN(v) ? Number(v) : v;
       });
-
       const response = await fetch(service.endpoint + '/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,8 +53,14 @@ export default function ServiceDetail() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
-      Cargando…
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="flex items-center gap-3 text-slate-400">
+        <svg className="w-5 h-5 animate-spin text-cyan-500" fill="none" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/>
+          <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+        </svg>
+        Cargando servicio…
+      </div>
     </div>
   );
 
@@ -72,67 +70,188 @@ export default function ServiceDetail() {
     </div>
   );
 
+  const langColor = service.language === 'python'
+    ? 'bg-blue-900/30 text-blue-300 border-blue-700/40'
+    : 'bg-yellow-900/30 text-yellow-300 border-yellow-700/40';
+  const langIcon = service.language === 'python' ? '🐍' : '🟨';
+  const lines = (service.code || '').split('\n');
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 px-8 py-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate(-1)} className="text-slate-400 hover:text-slate-200 text-sm transition-colors">
-          ← Volver
-        </button>
-        <div>
-          <h1 className="text-lg font-bold font-mono">{service.name}</h1>
-          <p className="text-xs text-slate-500 font-mono">{service.endpoint}</p>
+      <div className="border-b border-slate-800 px-8 py-5">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 text-sm transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+            </svg>
+            Volver
+          </button>
+
+          <div className="w-px h-5 bg-slate-700" />
+
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+              <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-bold font-mono">{service.name}</h1>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded border ${langColor}`}>
+                  {langIcon} {service.language}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">{service.endpoint}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-xl flex flex-col gap-6">
-        {/* Parámetros */}
-        <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 flex flex-col gap-4">
-          <h2 className="text-sm font-semibold text-slate-300">Parámetros</h2>
+      <div className="px-8 py-6 flex flex-col gap-5">
 
-          {service.params.length === 0 ? (
-            <p className="text-sm text-slate-500">Este servicio no tiene parámetros.</p>
-          ) : (
-            service.params.map(p => (
-              <div key={p.name}>
-                <label className="text-sm text-slate-300 font-medium">
-                  {p.name}
-                  {p.required && <span className="text-cyan-400 ml-1">*</span>}
-                  {p.type && <span className="text-slate-500 ml-2 text-xs">({p.type})</span>}
-                </label>
-                <input
-                  value={values[p.name] ?? ''}
-                  onChange={e => {
-                    setValues(prev => ({ ...prev, [p.name]: e.target.value }));
-                    setError('');
-                  }}
-                  placeholder={p.default !== null ? `Default: ${p.default}` : `Valor para ${p.name}`}
-                  className="mt-1 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-cyan-600 placeholder:text-slate-600"
-                />
+        {/* Código fuente — ancho completo */}
+        <div className="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden">
+          {/* Barra del editor */}
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-700/60">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1.5">
+                <span className="w-3 h-3 rounded-full bg-red-500/70" />
+                <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
+                <span className="w-3 h-3 rounded-full bg-green-500/70" />
               </div>
-            ))
-          )}
+              <div className="w-px h-4 bg-slate-700" />
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-4 bg-violet-500 rounded-full" />
+                <span className="text-sm font-semibold text-slate-200">Código fuente</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-600 font-mono">{lines.length} líneas</span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded border ${langColor}`}>
+                {langIcon} {service.language}
+              </span>
+            </div>
+          </div>
 
-          {error && <p className="text-xs text-red-400">{error}</p>}
-
-          <button
-            onClick={handleExecute}
-            disabled={executing}
-            className="mt-2 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition-colors disabled:opacity-50"
-          >
-            {executing ? 'Ejecutando…' : 'Ejecutar'}
-          </button>
-        </div>
-
-        {/* Resultado */}
-        {result !== null && (
-          <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 flex flex-col gap-3">
-            <h2 className="text-sm font-semibold text-slate-300">Resultado</h2>
-            <pre className="bg-slate-950 border border-slate-700/40 rounded-lg p-4 text-sm font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap">
-              {JSON.stringify(result, null, 2)}
+          {/* Líneas de código */}
+          <div className="flex bg-slate-950 max-h-56 overflow-y-auto">
+            {/* Números */}
+            <div className="select-none px-4 py-4 text-right font-mono text-xs text-slate-600 bg-slate-900/50 border-r border-slate-700/40 min-w-[3rem]">
+              {lines.map((_, i) => (
+                <div key={i} className="leading-6">{i + 1}</div>
+              ))}
+            </div>
+            {/* Código */}
+            <pre className="flex-1 px-4 py-4 text-sm font-mono text-slate-300 leading-6 overflow-x-auto whitespace-pre">
+              {service.code}
             </pre>
           </div>
-        )}
+        </div>
+
+        {/* Fila inferior: parámetros | resultado */}
+        <div className="flex gap-5">
+
+          {/* Parámetros */}
+          <div className="flex-1 bg-slate-900 border border-slate-700/60 rounded-2xl p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-4 bg-cyan-500 rounded-full" />
+              <h2 className="text-sm font-semibold text-slate-200">Parámetros</h2>
+              <span className="ml-auto text-xs text-slate-600 font-mono">
+                {service.params.length} param{service.params.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {service.params.length === 0 ? (
+              <p className="text-sm text-slate-500 py-4 text-center">Sin parámetros</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {service.params.map((p, i) => (
+                  <div key={p.name}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-xs text-slate-600 font-mono">{i + 1}.</span>
+                      <label className="text-sm font-medium text-slate-300 font-mono">{p.name}</label>
+                      {p.required && <span className="text-cyan-400 text-xs">requerido</span>}
+                      {p.type && <span className="text-slate-600 text-xs ml-auto">({p.type})</span>}
+                    </div>
+                    <input
+                      value={values[p.name] ?? ''}
+                      onChange={e => { setValues(prev => ({ ...prev, [p.name]: e.target.value })); setError(''); }}
+                      placeholder={p.default !== null ? `Default: ${p.default}` : `Ingresa ${p.name}…`}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-slate-200 focus:outline-none focus:border-cyan-600 placeholder:text-slate-600 transition-colors"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {error && (
+              <div className="flex items-center gap-2 text-xs text-red-400 bg-red-900/20 border border-red-800/40 rounded-lg px-3 py-2">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                {error}
+              </div>
+            )}
+
+            <button
+              onClick={handleExecute}
+              disabled={executing}
+              className="mt-auto w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+            >
+              {executing ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"/>
+                    <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                  </svg>
+                  Ejecutando…
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                  Ejecutar
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Resultado */}
+          <div className="flex-1 bg-slate-900 border border-slate-700/60 rounded-2xl p-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+              <h2 className="text-sm font-semibold text-slate-200">Resultado</h2>
+              {result !== null && (
+                <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  OK
+                </span>
+              )}
+            </div>
+
+            {result === null ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-10 text-slate-700 gap-3">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2}
+                    d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p className="text-sm">Ejecuta el servicio para ver el resultado</p>
+              </div>
+            ) : (
+              <pre className="flex-1 bg-slate-950 border border-slate-700/40 rounded-xl p-4 text-sm font-mono text-emerald-400 overflow-x-auto whitespace-pre-wrap">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   );
