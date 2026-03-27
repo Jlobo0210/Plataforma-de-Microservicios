@@ -15,6 +15,7 @@ async def lifespan(app: FastAPI):
     # Al iniciar: limpiar microservicios huérfanos
     nginx_mgr.cleanup_all()
     docker_mgr.cleanup_all()
+    docker_mgr._start_monitor()
     yield
     # Al apagar: limpiar todo
     print("🔄 Apagando plataforma, limpiando microservicios...")

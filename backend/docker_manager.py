@@ -49,7 +49,7 @@ class DockerManager:
                 self._sync_container_statuses()
             except Exception as e:
                 print(f"⚠️  [Monitor] Error: {e}")
-            time.sleep(10)  # ⭐ Revisar cada 10 segundos
+            time.sleep(5)  # ⭐ Revisar cada 10 segundos
 
     def _sync_container_statuses(self):
         """Sincroniza el estado de active_services con Docker."""
