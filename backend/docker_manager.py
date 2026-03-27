@@ -11,20 +11,86 @@ class DockerManager:
         self.client = docker.from_env()
         self.network_name = os.getenv("DOCKER_NETWORK", "platform_network")
         self.active_services = {}
-        
-        # Ruta a las plantillas (relativa a este archivo)
         self.templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-        
-        # Construye las imágenes base al iniciar
+        self._monitor_running = False  # ⭐ Flag para controlar el monitor
+
         print("Construyendo imágenes base...")
         self._build_base_images()
         print("Imágenes base listas.")
 
+        # ⭐ Iniciar el monitor en segundo plano
+        self._start_monitor()
+
+    # ─────────────────────────────────────────────────────
+    # Monitor de contenedores
+    # ─────────────────────────────────────────────────────
+
+    def _start_monitor(self):
+        """Inicia el hilo monitor en segundo plano."""
+        self._monitor_running = True
+        self._monitor_thread = threading.Thread(
+            target=self._monitor_loop,
+            daemon=True  # ⭐ Muere cuando muere el proceso principal
+        )
+        self._monitor_thread.start()
+        print("👀 Monitor de contenedores iniciado")
+
+    def _stop_monitor(self):
+        """Detiene el hilo monitor."""
+        self._monitor_running = False
+
+    def _monitor_loop(self):
+        """
+        Revisa el estado real de los contenedores cada 10s
+        y actualiza active_services si hay cambios.
+        """
+        while self._monitor_running:
+            try:
+                self._sync_container_statuses()
+            except Exception as e:
+                print(f"⚠️  [Monitor] Error: {e}")
+            time.sleep(10)  # ⭐ Revisar cada 10 segundos
+
+    def _sync_container_statuses(self):
+        """Sincroniza el estado de active_services con Docker."""
+        if not self.active_services:
+            return
+
+        for service_id, service in list(self.active_services.items()):
+            try:
+                container = self.client.containers.get(service["container_id"])
+                container.reload()
+
+                # Mapear estado de Docker a estado de la plataforma
+                status_map = {
+                    "running":    "active",
+                    "exited":     "inactive",
+                    "paused":     "inactive",
+                    "restarting": "inactive",
+                    "dead":       "inactive",
+                    "created":    "active",
+                }
+                new_status = status_map.get(container.status, "inactive")
+                old_status = service.get("status")
+
+                # ⭐ Solo actualizar si cambió el estado
+                if new_status != old_status:
+                    print(f"🔄 [Monitor] {service['container_name']}: {old_status} → {new_status}")
+                    self.active_services[service_id]["status"] = new_status
+
+            except docker.errors.NotFound:
+                # El contenedor fue eliminado externamente
+                print(f"⚠️  [Monitor] Contenedor no encontrado, marcando como inactive: {service['container_name']}")
+                self.active_services[service_id]["status"] = "inactive"
+
+            except Exception as e:
+                print(f"⚠️  [Monitor] Error revisando {service.get('container_name')}: {e}")
+
+    # ─────────────────────────────────────────────────────
+    # Build de imágenes base
+    # ─────────────────────────────────────────────────────
+
     def _build_base_images(self):
-        """
-        Construye las imágenes base una sola vez al arrancar.
-        Estas imágenes ya tienen Python o Javascript instalados.
-        """
         base_images = {
             "python": {
                 "tag": "ms-platform-python:latest",
@@ -38,24 +104,22 @@ class DockerManager:
         
         for lang, config in base_images.items():
             try:
-                # Verifica si la imagen ya existe para no reconstruirla cada vez
                 self.client.images.get(config["tag"])
                 print(f"  [{lang}] Imagen ya existe, saltando build.")
             except docker.errors.ImageNotFound:
-                print(f"  [{lang}] Construyendo imagen base (puede tardar un momento)...")
+                print(f"  [{lang}] Construyendo imagen base...")
                 self.client.images.build(
                     path=config["path"],
                     tag=config["tag"],
-                    rm=True  # Limpia capas intermedias
+                    rm=True
                 )
                 print(f"  [{lang}] Imagen lista.")
-    
+
     # ─────────────────────────────────────────────────────
     # Parsers
     # ─────────────────────────────────────────────────────
-    
+
     def _parse_python_params(self, code: str) -> dict:
-        """Parsea los parámetros de una función Python con AST."""
         tree = ast.parse(code)
 
         for node in ast.walk(tree):
@@ -173,8 +237,7 @@ try {
             print(f"⏳ Esperando contenedor {container.name} ({container.status})...")
             time.sleep(0.5)
         raise Exception(f"Timeout esperando el contenedor {container.name}")
-    
-    
+
     def create_microservice(self, name: str, code: str, language: str, description: str = "") -> dict:
         """
         Crea un contenedor usando la imagen base ya construida.
@@ -186,7 +249,7 @@ try {
         # Usa la imagen base pre-construida según el lenguaje
         images = {
             "python": "ms-platform-python:latest",
-            "javascript":   "ms-platform-javascript:latest"
+            "javascript": "ms-platform-javascript:latest"
         }
         image = images.get(language)
         if not image:
@@ -209,7 +272,7 @@ try {
                     "service_id": service_id
                 }
             )
-            
+
             self._wait_for_container(container)
 
             self.active_services[service_id] = {
@@ -222,11 +285,10 @@ try {
                 "status": "active",
                 "endpoint": f"/api/services/{name}-{service_id}",
                 "function": None,
-                "params": []    
+                "params": []
             }
             # ⭐ Parsear y guardar los parámetros junto con el resto de la info
             params_info = self._parse_params(service_id, code, language)
-            
             self.active_services[service_id]["function"] = params_info.get("function")
             self.active_services[service_id]["params"] = params_info.get("params", [])
             
@@ -256,7 +318,7 @@ try {
             "function": service.get("function"),
             "params": service.get("params", [])
         }
-    
+
     def _stop_and_remove_container(self, container):
         """Detiene y elimina un contenedor individual."""
         try:
@@ -288,7 +350,7 @@ try {
         # Inicia el contenedor de un microservicio deshabilitado.
         if service_id not in self.active_services:
             raise Exception(f"Microservicio '{service_id}' no encontrado")
-        
+
         info = self.active_services[service_id]
         try:
             container = self.client.containers.get(info["container_id"])
@@ -297,12 +359,11 @@ try {
             print(f"✅ Microservicio habilitado: {info['container_name']}")
         except Exception as e:
             raise Exception(f"Error habilitando microservicio: {str(e)}")
-        
+
     def disable_microservice(self, service_id: str):
-        # Detiene el contenedor de un microservicio sin eliminarlo.
         if service_id not in self.active_services:
             raise Exception(f"Microservicio '{service_id}' no encontrado")
-        
+
         info = self.active_services[service_id]
         try:
             container = self.client.containers.get(info["container_id"])
@@ -316,6 +377,9 @@ try {
         """Limpia todos los microservicios en paralelo al apagar la plataforma."""
         
         # ⭐ Recolectar todos los contenedores a eliminar
+        # ⭐ Detener el monitor antes de limpiar
+        self._stop_monitor()
+
         containers_to_remove = []
 
         # Los registrados en active_services
@@ -342,6 +406,7 @@ try {
 
         if not containers_to_remove:
             print("✅ No hay contenedores que limpiar")
+            self.active_services.clear()
             return
 
         print(f"🗑️  Eliminando {len(containers_to_remove)} contenedor(es) en paralelo...")
@@ -364,6 +429,3 @@ try {
         # Limpiar el registro
         self.active_services.clear()
         print("✅ Limpieza completa")
-
-
-
