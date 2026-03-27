@@ -45,7 +45,14 @@ export default function ServiceDetail() {
 
     const converted = {};
     Object.entries(values).forEach(([k, v]) => {
-      converted[k] = v !== '' && !isNaN(v) ? parseInt(v) : v;
+      const trimmed = v.trim().replace(',', '.');
+      if (trimmed === '') {
+        converted[k] = v;
+      } else if (!isNaN(trimmed) && !trimmed.endsWith('.')) {
+        converted[k] = Number(trimmed);
+      } else {
+        converted[k] = trimmed;
+      }
     });
 
     setExecuting(true);
