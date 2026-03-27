@@ -51,23 +51,25 @@ export default function ServiceDetail() {
     setExecuting(true);
     setResult(null);
     try {
-      let url;
-      if (mode === 'query') {
-        const queryString = Object.entries(converted)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('&');
-        url = service.endpoint + '/?' + queryString;
-      } else {
-        url = service.endpoint + '/';
+     if (mode === 'query') {
+  const queryString = Object.entries(converted)
+    .map(([k, v]) => `${k}=${v}`)
+    .join('&');
+  const url = service.endpoint + '/?' + queryString;
+  console.log('URL mandada al backend:', url);  // ← agrega esto
+  console.log('valores converted:', converted);  // ← y esto
+  const res = await fetch(url, { method: 'GET' });
+  const data = await res.json();
+  setResult(data);
+}else {
+        const res = await fetch(service.endpoint + '/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(converted),
+        });
+        const data = await res.json();
+        setResult(data);
       }
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(converted),
-      });
-      const data = await res.json();
-      setResult(data);
     } catch {
       setError('Error al ejecutar el servicio.');
     } finally {
