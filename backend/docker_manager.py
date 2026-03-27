@@ -68,7 +68,7 @@ class DockerManager:
                     "paused":     "inactive",
                     "restarting": "inactive",
                     "dead":       "inactive",
-                    "created":    "active",
+                    "created":    "inactive",
                 }
                 new_status = status_map.get(container.status, "inactive")
                 old_status = service.get("status")
@@ -230,7 +230,7 @@ try {
         """Espera a que el contenedor esté en estado running."""
         start = time.time()
         while time.time() - start < timeout:
-            container.reload()  # Refresca el estado del contenedor
+            container.reload()
             if container.status == "running":
                 print(f"✅ Contenedor listo: {container.name}")
                 return
@@ -322,13 +322,13 @@ try {
     def _stop_and_remove_container(self, container):
         """Detiene y elimina un contenedor individual."""
         try:
-            container.stop(timeout=3)  # ⭐ Timeout corto: 3s en vez de 10s
-            container.remove(force=True)  # ⭐ Force: elimina aunque no esté detenido
+            container.stop(timeout=3)
+            container.remove(force=True)
             print(f"🗑️  Contenedor eliminado: {container.name}")
         except Exception as e:
             print(f"⚠️  Error eliminando {container.name}: {e}")
             try:
-                container.remove(force=True)  # ⭐ Intenta force remove si falla el stop
+                container.remove(force=True)
             except Exception as e2:
                 print(f"⚠️  Error forzando eliminación {container.name}: {e2}")
 
