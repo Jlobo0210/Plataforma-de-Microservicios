@@ -11,6 +11,7 @@ export default function ServiceDetail() {
   const [loading, setLoading]     = useState(true);
   const [executing, setExecuting] = useState(false);
   const [error, setError]         = useState('');
+  const [mode, setMode]           = useState('body');
 
   useEffect(() => {
     fetch('/api/services')
@@ -27,23 +28,45 @@ export default function ServiceDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const queryUrl = service
+    ? service.endpoint + '/?' + service.params
+        .map(p => {
+          const v = values[p.name] ?? '';
+          const num = v !== '' && !isNaN(v) ? parseInt(v) : v;
+          return `${p.name}=${num}`;
+        })
+        .join('&')
+    : '';
+
   const handleExecute = async () => {
     const empty = service.params.filter(p => p.required && String(values[p.name]).trim() === '');
     if (empty.length > 0) { setError(`Completa: ${empty.map(p => p.name).join(', ')}`); return; }
     setError('');
+
+    const converted = {};
+    Object.entries(values).forEach(([k, v]) => {
+      converted[k] = v !== '' && !isNaN(v) ? parseInt(v) : v;
+    });
+
     setExecuting(true);
     setResult(null);
     try {
-      const converted = {};
-      Object.entries(values).forEach(([k, v]) => {
-        converted[k] = v !== '' && !isNaN(v) ? Number(v) : v;
-      });
-      const response = await fetch(service.endpoint + '/', {
+      let url;
+      if (mode === 'query') {
+        const queryString = Object.entries(converted)
+          .map(([k, v]) => `${k}=${v}`)
+          .join('&');
+        url = service.endpoint + '/?' + queryString;
+      } else {
+        url = service.endpoint + '/';
+      }
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(converted),
       });
-      const data = await response.json();
+      const data = await res.json();
       setResult(data);
     } catch {
       setError('Error al ejecutar el servicio.');
@@ -79,7 +102,6 @@ export default function ServiceDetail() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
 
-      {/* Header */}
       <div className="border-b border-slate-800 px-8 py-5">
         <div className="flex items-center gap-4">
           <button
@@ -91,9 +113,7 @@ export default function ServiceDetail() {
             </svg>
             Volver
           </button>
-
           <div className="w-px h-5 bg-slate-700" />
-
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
               <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,9 +135,7 @@ export default function ServiceDetail() {
 
       <div className="px-8 py-6 flex flex-col gap-5">
 
-        {/* Código fuente — ancho completo */}
         <div className="bg-slate-900 border border-slate-700/60 rounded-2xl overflow-hidden">
-          {/* Barra del editor */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-700/60">
             <div className="flex items-center gap-3">
               <div className="flex gap-1.5">
@@ -138,34 +156,69 @@ export default function ServiceDetail() {
               </span>
             </div>
           </div>
-
-          {/* Líneas de código */}
           <div className="flex bg-slate-950 max-h-56 overflow-y-auto">
-            {/* Números */}
             <div className="select-none px-4 py-4 text-right font-mono text-xs text-slate-600 bg-slate-900/50 border-r border-slate-700/40 min-w-[3rem]">
-              {lines.map((_, i) => (
-                <div key={i} className="leading-6">{i + 1}</div>
-              ))}
+              {lines.map((_, i) => <div key={i} className="leading-6">{i + 1}</div>)}
             </div>
-            {/* Código */}
             <pre className="flex-1 px-4 py-4 text-sm font-mono text-slate-300 leading-6 overflow-x-auto whitespace-pre">
               {service.code}
             </pre>
           </div>
         </div>
 
-        {/* Fila inferior: parámetros | resultado */}
         <div className="flex gap-5">
 
-          {/* Parámetros */}
           <div className="flex-1 bg-slate-900 border border-slate-700/60 rounded-2xl p-6 flex flex-col gap-4">
+
             <div className="flex items-center gap-2">
               <div className="w-1 h-4 bg-cyan-500 rounded-full" />
               <h2 className="text-sm font-semibold text-slate-200">Parámetros</h2>
-              <span className="ml-auto text-xs text-slate-600 font-mono">
+              <span className="text-xs text-slate-600 font-mono">
                 {service.params.length} param{service.params.length !== 1 ? 's' : ''}
               </span>
+              <div className="ml-auto flex items-center gap-1 bg-slate-800 border border-slate-700 rounded-lg p-1">
+                <button
+                  onClick={() => setMode('body')}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+                    mode === 'body' ? 'bg-cyan-600 text-white' : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  Body
+                </button>
+                <button
+                  onClick={() => setMode('query')}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${
+                    mode === 'query' ? 'bg-cyan-600 text-white' : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  Query
+                </button>
+              </div>
             </div>
+
+            {mode === 'query' && (
+              <div className="bg-slate-950 border border-slate-700/40 rounded-lg px-3 py-2 flex items-start gap-2">
+                <span className="text-xs text-slate-500 shrink-0 mt-0.5">URL:</span>
+                <span
+                  onClick={() => {
+                    if (result === null) return;
+                    const ventana = window.open('', '_blank');
+                    ventana.document.write(`
+                      <html>
+                        <head><title>Resultado</title></head>
+                        <body style="background:#020617;color:#34d399;font-family:monospace;padding:2rem;">
+                          <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </body>
+                      </html>
+                    `);
+                    ventana.document.close();
+                  }}
+                  className={`text-xs font-mono text-cyan-400 break-all ${result !== null ? 'hover:underline cursor-pointer' : 'cursor-default'}`}
+                >
+                  {queryUrl}
+                </span>
+              </div>
+            )}
 
             {service.params.length === 0 ? (
               <p className="text-sm text-slate-500 py-4 text-center">Sin parámetros</p>
@@ -223,7 +276,6 @@ export default function ServiceDetail() {
             </button>
           </div>
 
-          {/* Resultado */}
           <div className="flex-1 bg-slate-900 border border-slate-700/60 rounded-2xl p-6 flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <div className="w-1 h-4 bg-emerald-500 rounded-full" />
