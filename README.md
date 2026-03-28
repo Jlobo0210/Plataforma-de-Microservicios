@@ -104,7 +104,7 @@ cd Plataforma-de-Microservicios
 docker compose up --build
 
 # 3. Abrir la aplicación en el navegador
-# http://localhost:3000
+# http://localhost
 ```
 
 La primera vez puede tardar unos minutos mientras Docker construye las imágenes base de Python y JavaScript.
@@ -163,6 +163,56 @@ function suma(params) {
 
 ---
 
+## Cómo usar la plataforma
+
+### 1. Crear un microservicio
+
+1. Haz clic en **"Nuevo Servicio"** en la barra lateral o en el header
+2. Completa el formulario:
+   - **Nombre:** identificador único en minúsculas y guiones (ej: `mi-servicio`)
+   - **Descripción:** explica brevemente qué hace
+   - **Lenguaje:** Python o JavaScript
+   - **Código:** pega la función directamente en el editor
+3. Haz clic en **"Crear y desplegar"**
+4. La tarjeta aparece en el dashboard con estado **Construyendo…** y cambia a **Activo** cuando el contenedor está listo
+
+---
+
+### 2. Ejecutar un microservicio
+
+1. En el dashboard, haz clic sobre el **endpoint** de la tarjeta (ej: `/api/services/suma-c2dddd16`)
+2. Se abre la página de detalle del servicio con:
+   - El **código fuente** del microservicio
+   - Los **parámetros** detectados automáticamente
+   - El panel de **resultado**
+3. Llena los parámetros y haz clic en **"Ejecutar"**
+4. El resultado aparece en el panel derecho
+```
+┌─────────────────────────────────────────────────────┐
+│  Nuevo Servicio                                     │
+│    → nombre · descripción · lenguaje · código       │
+│    → Crear y desplegar                              │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│  Dashboard — tarjeta del servicio                   │
+│    → Estado: Construyendo... → Activo               │
+│    → Click en el endpoint                           │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│  Detalle del servicio                               │
+│    → Ver código fuente                              │
+│    → Llenar parámetros (si los hay)                 │
+│    → Ejecutar                                       │
+│    → Ver resultado                                  │
+└─────────────────────────────────────────────────────┘
+```
+
+
+
 ## Estructura del proyecto
 
 ```
@@ -182,18 +232,20 @@ Plataforma-de-Microservicios/
 │   │   │   └── ServiceDetail.jsx    # Página de ejecución del servicio
 │   │   └── services/
 │   │       └── api.js               # Capa de comunicación con el backend
-│   └── Dockerfile.dev
+│   ├── Dockerfile                   # Imagen de producción
+│   └── Dockerfile.dev               # Imagen de desarrollo con hot reload
 │
 ├── backend/                         # API FastAPI
 │   ├── main.py                      # Endpoints REST
 │   ├── docker_manager.py            # Gestión de contenedores Docker
 │   ├── nginx_manager.py             # Escritura de configuración NGINX
+│   ├── Dockerfile.dev               # Imagen de desarrollo con hot reload
 │   └── templates/
 │       ├── python/
-│       │   ├── Dockerfile
+│       │   ├── Dockerfile           # Imagen base para microservicios Python
 │       │   └── runner.py            # Servidor que ejecuta el código Python
 │       └── javascript/
-│           ├── Dockerfile
+│           ├── Dockerfile           # Imagen base para microservicios JavaScript
 │           └── runner.js            # Servidor que ejecuta el código JavaScript
 │
 ├── nginx/
@@ -222,3 +274,4 @@ Plataforma-de-Microservicios/
 | Runtime JS | Acorn | Parser AST para JavaScript |
 | Infraestructura | Docker | Contenedores aislados por microservicio |
 | Infraestructura | Docker Compose | Orquestación de servicios |
+
