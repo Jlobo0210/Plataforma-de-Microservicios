@@ -6,43 +6,42 @@ services:
     ports:
       - "80:80"
     volumes:
-      - nginx_config:/etc/nginx/conf.d   # Volumen compartido para configs
+      - nginx_locations:/etc/nginx/locations
     networks:
       - platform_network
     depends_on:
       - backend
       - frontend
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     environment:
       - DOCKER_NETWORK=platform_network
-      - NGINX_CONFIG_PATH=/nginx_config
+      - NGINX_CONFIG_PATH=/nginx_locations
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # ⭐ La magia
-      - nginx_config:/nginx_config                  # Mismo volumen que NGINX
+      - nginx_locations:/nginx_locations  # Mismo volumen que NGINX
     ports:
       - "8000:8000"
     networks:
       - platform_network
-    develop:
-      watch:
-        - path: ./backend/requirements.docker.txt
-          action: rebuild
-        - path: ./backend
-          target: /app
-          action: sync
+    restart: unless-stopped      # ⭐ Reinicia si cae
+    stop_grace_period: 20s       # ⭐ Tiempo para limpiar contenedores
 
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     networks:
       - platform_network
+    restart: unless-stopped 
 
 volumes:
-  nginx_config:
+  nginx_locations:
 
 networks:
   platform_network:
