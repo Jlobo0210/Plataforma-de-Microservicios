@@ -1,7 +1,7 @@
 # Plataforma Dinámica de Microservicios
 
 > Repositorio: [GitHub](https://github.com/Jlobo0210/Plataforma-de-Microservicios.git)  
-> Video de demostración: [YouTube](<LINK_VIDEO_AQUÍ>)
+> Video de demostración: [YouTube](https://youtu.be/ol1uybySsB8)
 
 ---
 
@@ -198,29 +198,30 @@ def suma(a, b):
  
 ```javascript
 function suma(a, b) {
-    return parseFloat(a) + parseFloat(b);
+  return parseFloat(a) + parseFloat(b);
 }
 ```
- 
+
 ### Calcular IMC — Python
- 
+
 **Nombre:** `imc` · **Lenguaje:** Python
- 
+
 ```python
 def imc(peso, altura):
     resultado = float(peso) / (float(altura) ** 2)
     return round(resultado, 2)
 ```
- 
+
 ### Celsius a Fahrenheit — JavaScript
- 
+
 **Nombre:** `temperatura` · **Lenguaje:** JavaScript
- 
+
 ```javascript
 function temperatura(celsius) {
-    return parseFloat(celsius) * 9/5 + 32;
+  return (parseFloat(celsius) * 9) / 5 + 32;
 }
 ```
+
 ---
 
 ## Estructura del proyecto
@@ -270,18 +271,17 @@ Plataforma-de-Microservicios/
 
 ## Tecnologías utilizadas
 
-| Capa | Tecnología | Rol |
-|---|---|---|
-| Frontend | React 18 | Interfaz de usuario |
-| Frontend | React Router | Navegación entre páginas |
-| Frontend | Tailwind CSS | Estilos |
-| Frontend | Fetch API | Comunicación con el backend |
-| Proxy | NGINX | Reverse proxy y enrutamiento dinámico |
-| Backend | FastAPI | API REST principal |
-| Backend | Docker SDK (Python) | Gestión de contenedores |
-| Runtime Python | FastAPI + Uvicorn | Servidor dentro del contenedor |
-| Runtime JS | Express.js | Servidor dentro del contenedor |
-| Runtime JS | Acorn | Parser AST para JavaScript |
-| Infraestructura | Docker | Contenedores aislados por microservicio |
-| Infraestructura | Docker Compose | Orquestación de servicios |
-
+| Capa            | Tecnología          | Rol                                     |
+| --------------- | ------------------- | --------------------------------------- |
+| Frontend        | React 18            | Interfaz de usuario                     |
+| Frontend        | React Router        | Navegación entre páginas                |
+| Frontend        | Tailwind CSS        | Estilos                                 |
+| Frontend        | Fetch API           | Comunicación con el backend             |
+| Proxy           | NGINX               | Reverse proxy y enrutamiento dinámico   |
+| Backend         | FastAPI             | API REST principal                      |
+| Backend         | Docker SDK (Python) | Gestión de contenedores                 |
+| Runtime Python  | FastAPI + Uvicorn   | Servidor dentro del contenedor          |
+| Runtime JS      | Express.js          | Servidor dentro del contenedor          |
+| Runtime JS      | Acorn               | Parser AST para JavaScript              |
+| Infraestructura | Docker              | Contenedores aislados por microservicio |
+| Infraestructura | Docker Compose      | Orquestación de servicios               |
