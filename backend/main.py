@@ -4,7 +4,6 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from docker_manager import DockerManager
 from nginx_manager import NginxManager
-import threading
 
 docker_mgr = DockerManager()
 nginx_mgr = NginxManager()
@@ -15,16 +14,8 @@ async def lifespan(app: FastAPI):
     # Al iniciar: limpiar microservicios huérfanos
     nginx_mgr.cleanup_all()
     docker_mgr.cleanup_all()
-    docker_mgr._start_monitor()
     yield
     # Al apagar: limpiar todo
-    print("🔄 Apagando plataforma, limpiando microservicios...")
-    cleanup_thread = threading.Thread(target=_cleanup)
-    cleanup_thread.start()
-    cleanup_thread.join(timeout=30)  # ⭐ Espera hasta 30s
-    print("✅ Plataforma apagada")
-
-def _cleanup():
     nginx_mgr.cleanup_all()
     docker_mgr.cleanup_all()
 
@@ -41,7 +32,6 @@ class CreateServiceRequest(BaseModel):
     name: str
     code: str
     language: str  # "python" | "javascript"
-    description: str = ""  # Opcional, para futuras mejoras
 
 @app.post("/api/services")
 async def create_service(request: CreateServiceRequest):
@@ -51,8 +41,7 @@ async def create_service(request: CreateServiceRequest):
         service_info = docker_mgr.create_microservice(
             name=request.name,
             code=request.code,
-            language=request.language,
-            description=request.description
+            language=request.language
         )
         
         # 2. Agregar ruta en NGINX
@@ -78,34 +67,7 @@ async def delete_service(service_id: str):
     nginx_mgr.remove_route(service_id)
     return {"success": True}
 
-@app.patch("/api/services/{service_id}/enable")
-async def enable_service(service_id: str):
-    # Habilita un microservicio detenido.
-    try:
-        docker_mgr.enable_microservice(service_id)
-        return {"success": True, "status": "active"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-@app.patch("/api/services/{service_id}/disable")
-async def disable_service(service_id: str):
-    # Deshabilita un microservicio sin eliminarlo.
-    try:
-        docker_mgr.disable_microservice(service_id)
-        return {"success": True, "status": "inactive"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/api/services")
 async def list_services():
     """Lista los microservicios activos."""
     return {"services": docker_mgr.active_services}
-
-@app.get("/api/services/{service_id}/params")
-async def get_service_params(service_id: str):
-    """Retorna los parámetros que necesita un microservicio."""
-    try:
-        params = docker_mgr.get_service_params(service_id)
-        return params
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
