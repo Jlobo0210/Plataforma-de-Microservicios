@@ -111,58 +111,6 @@ La primera vez puede tardar unos minutos mientras Docker construye las imágenes
 
 ---
 
-## Ejemplos para el dashboard
-
-Los siguientes ejemplos están listos para copiar y pegar en el formulario de creación.
-
-### Hola Mundo — Python
-
-**Nombre:** `hola`  
-**Lenguaje:** Python  
-**Código:**
-```python
-def hola():
-    return "Hola Mundo"
-```
-
-### Hola Mundo — JavaScript
-
-**Nombre:** `hola`  
-**Lenguaje:** JavaScript  
-**Código:**
-```javascript
-function hola(params) {
-    return "Hola Mundo";
-}
-```
-
-### Suma de dos valores — Python
-
-**Nombre:** `suma`  
-**Lenguaje:** Python  
-**Código:**
-```python
-def suma(a, b):
-    return int(a) + int(b)
-```
-
-**Uso:** llamar el endpoint con `?a=5&b=3`
-
-### Suma de dos valores — JavaScript
-
-**Nombre:** `suma`  
-**Lenguaje:** JavaScript  
-**Código:**
-```javascript
-function suma(params) {
-    return parseInt(params.a) + parseInt(params.b);
-}
-```
-
-**Uso:** llamar el endpoint con `?a=5&b=3`
-
----
-
 ## Cómo usar la plataforma
 
 ### 1. Crear un microservicio
@@ -210,8 +158,70 @@ function suma(params) {
 │    → Ver resultado                                  │
 └─────────────────────────────────────────────────────┘
 ```
+---
 
-
+## Ejemplos listos para usar
+ 
+Copia y pega cualquiera de estos en el formulario de creación.
+ 
+### Hola Mundo — Python
+ 
+**Nombre:** `hola` · **Lenguaje:** Python
+ 
+```python
+def hola():
+    return "Hola Mundo"
+```
+ 
+### Hola Mundo — JavaScript
+ 
+**Nombre:** `hola` · **Lenguaje:** JavaScript
+ 
+```javascript
+function hola() {
+    return "Hola Mundo";
+}
+```
+ 
+### Suma — Python
+ 
+**Nombre:** `suma` · **Lenguaje:** Python
+ 
+```python
+def suma(a, b):
+    return float(a) + float(b)
+```
+ 
+### Suma — JavaScript
+ 
+**Nombre:** `suma` · **Lenguaje:** JavaScript
+ 
+```javascript
+function suma(a, b) {
+    return parseFloat(a) + parseFloat(b);
+}
+```
+ 
+### Calcular IMC — Python
+ 
+**Nombre:** `imc` · **Lenguaje:** Python
+ 
+```python
+def imc(peso, altura):
+    resultado = float(peso) / (float(altura) ** 2)
+    return round(resultado, 2)
+```
+ 
+### Celsius a Fahrenheit — JavaScript
+ 
+**Nombre:** `temperatura` · **Lenguaje:** JavaScript
+ 
+```javascript
+function temperatura(celsius) {
+    return parseFloat(celsius) * 9/5 + 32;
+}
+```
+---
 
 ## Estructura del proyecto
 
