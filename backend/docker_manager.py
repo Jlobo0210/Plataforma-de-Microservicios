@@ -12,13 +12,13 @@ class DockerManager:
         self.network_name = os.getenv("DOCKER_NETWORK", "platform_network")
         self.active_services = {}
         self.templates_dir = os.path.join(os.path.dirname(__file__), "templates")
-        self._monitor_running = False  # ⭐ Flag para controlar el monitor
+        self._monitor_running = False  
 
         print("Construyendo imágenes base...")
         self._build_base_images()
         print("Imágenes base listas.")
 
-        # ⭐ Iniciar el monitor en segundo plano
+        # Iniciar el monitor en segundo plano
         self._start_monitor()
 
     # ─────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ class DockerManager:
         self._monitor_running = True
         self._monitor_thread = threading.Thread(
             target=self._monitor_loop,
-            daemon=True  # ⭐ Muere cuando muere el proceso principal
+            daemon=True  
         )
         self._monitor_thread.start()
         print("👀 Monitor de contenedores iniciado")
@@ -49,7 +49,7 @@ class DockerManager:
                 self._sync_container_statuses()
             except Exception as e:
                 print(f"⚠️  [Monitor] Error: {e}")
-            time.sleep(5)  # ⭐ Revisar cada 10 segundos
+            time.sleep(5)  
 
     def _sync_container_statuses(self):
         """Sincroniza el estado de active_services con Docker."""
@@ -73,7 +73,7 @@ class DockerManager:
                 new_status = status_map.get(container.status, "inactive")
                 old_status = service.get("status")
 
-                # ⭐ Solo actualizar si cambió el estado
+                # Solo actualizar si cambió el estado
                 if new_status != old_status:
                     print(f"🔄 [Monitor] {service['container_name']}: {old_status} → {new_status}")
                     self.active_services[service_id]["status"] = new_status
@@ -287,7 +287,7 @@ try {
                 "function": None,
                 "params": []
             }
-            # ⭐ Parsear y guardar los parámetros junto con el resto de la info
+            
             params_info = self._parse_params(service_id, code, language)
             self.active_services[service_id]["function"] = params_info.get("function")
             self.active_services[service_id]["params"] = params_info.get("params", [])
@@ -376,8 +376,7 @@ try {
     def cleanup_all(self):
         """Limpia todos los microservicios en paralelo al apagar la plataforma."""
         
-        # ⭐ Recolectar todos los contenedores a eliminar
-        # ⭐ Detener el monitor antes de limpiar
+        
         self._stop_monitor()
 
         containers_to_remove = []
@@ -395,7 +394,7 @@ try {
         # Los huérfanos (por si acaso)
         try:
             orphans = self.client.containers.list(
-            all=True,  # ⭐ Incluye exited, stopped, created, etc.
+            all=True,  
             filters={"label": "platform=microservice-platform"}
             )
             for c in orphans:
@@ -411,7 +410,7 @@ try {
 
         print(f"🗑️  Eliminando {len(containers_to_remove)} contenedor(es) en paralelo...")
 
-        # ⭐ Eliminar todos en paralelo con threads
+        # Eliminar todos en paralelo con threads
         threads = []
         for container in containers_to_remove:
             t = threading.Thread(
@@ -422,7 +421,7 @@ try {
             threads.append(t)
             t.start()
 
-        # ⭐ Esperar a que todos terminen con timeout global
+        # Esperar a que todos terminen con timeout global
         for t in threads:
             t.join(timeout=10)
 

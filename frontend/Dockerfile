@@ -5,7 +5,6 @@ WORKDIR /app
 
 COPY package*.json .
 
-# ⭐ npm install en vez de npm ci para sincronizar el lock file
 RUN npm install
 
 COPY . .

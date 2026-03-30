@@ -33,7 +33,7 @@ function detectEntrypoint(code) {
   return null;
 }
 
-// ⭐ Obtener los nombres de los parámetros en orden
+// Obtener los nombres de los parámetros en orden
 function getParamNames(funcNode) {
   return funcNode.params.map((param) => {
     // Con default: (a = 10) → nombre es "a"
@@ -74,7 +74,7 @@ console.log(`✅ Función '${entrypoint?.name}' lista`);
 
 async function execute(params) {
   try {
-    // ⭐ Mapear el objeto de params a argumentos en el orden correcto
+    // Mapear el objeto de params a argumentos en el orden correcto
     // { a: "5", b: "3" } + ["a", "b"] → sumar("5", "3")
     const args = entrypoint.params.map((paramName) => params[paramName]);
 

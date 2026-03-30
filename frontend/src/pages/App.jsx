@@ -12,18 +12,18 @@ export default function App() {
     const load = async () => {
       try {
         const data = await api.getAll();
-        // ⭐ Solo actualizar si es array válido
+        // Solo actualizar si es array válido
         if (Array.isArray(data)) {
           setServices(data);
         }
       } catch (err) {
-        // ⭐ Si falla, NO tocar el estado actual
+        // Si falla, NO tocar el estado actual
         console.error("❌ Error cargando servicios:", err);
       }
     };
 
     load();
-    const interval = setInterval(load, 5000); // ⭐ 10s en vez de 5s
+    const interval = setInterval(load, 5000); 
     return () => clearInterval(interval);
   }, []);
 

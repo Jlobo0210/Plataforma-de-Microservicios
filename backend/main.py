@@ -12,7 +12,7 @@ nginx_mgr = NginxManager()
 # Limpieza al iniciar y apagar
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Al iniciar: limpiar microservicios huérfanos
+    # Limpiar microservicios huérfanos
     nginx_mgr.cleanup_all()
     docker_mgr.cleanup_all()
     docker_mgr._start_monitor()
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     print("🔄 Apagando plataforma, limpiando microservicios...")
     cleanup_thread = threading.Thread(target=_cleanup)
     cleanup_thread.start()
-    cleanup_thread.join(timeout=30)  # ⭐ Espera hasta 30s
+    cleanup_thread.join(timeout=30)  
     print("✅ Plataforma apagada")
 
 def _cleanup():
@@ -41,7 +41,7 @@ class CreateServiceRequest(BaseModel):
     name: str
     code: str
     language: str  # "python" | "javascript"
-    description: str = ""  # Opcional, para futuras mejoras
+    description: str = ""  
 
 @app.post("/api/services")
 async def create_service(request: CreateServiceRequest):

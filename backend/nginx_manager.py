@@ -21,13 +21,13 @@ class NginxManager:
         f"location ~ ^/api/services/{endpoint}(/.*)?{nginx_dollar} {{\n"
         f"    resolver 127.0.0.11 valid=5s;\n"
         f"    set {nginx_dollar}upstream http://{container_name}:8080;\n"
-        # ⭐ Captura todo lo que viene después del endpoint
+        # Captura todo lo que viene después del endpoint
         f"    set {nginx_dollar}path {nginx_dollar}1;\n"
-        # ⭐ Si no hay nada después, usar /
+        # Si no hay nada después, usar /
         f"    if ({nginx_dollar}path = '') {{\n"
         f"        set {nginx_dollar}path /;\n"
         f"    }}\n"
-        # ⭐ proxy_pass con la variable de path, sin rewrite
+        # proxy_pass con la variable de path, sin rewrite
         f"    proxy_pass {nginx_dollar}upstream{nginx_dollar}path{nginx_dollar}is_args{nginx_dollar}args;\n"
         f"    proxy_set_header Host {nginx_dollar}host;\n"
         f"    proxy_set_header X-Real-IP {nginx_dollar}remote_addr;\n"

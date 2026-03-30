@@ -63,8 +63,8 @@ export default function ServiceDetail() {
     .map(([k, v]) => `${k}=${v}`)
     .join('&');
   const url = service.endpoint + '/?' + queryString;
-  console.log('URL mandada al backend:', url);  // ← agrega esto
-  console.log('valores converted:', converted);  // ← y esto
+  console.log('URL mandada al backend:', url);  
+  console.log('valores converted:', converted);  
   const res = await fetch(url, { method: 'GET' });
   const data = await res.json();
   setResult(data);
